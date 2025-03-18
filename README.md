@@ -2,7 +2,7 @@
 a simple WAD reader written in Nodepp
 
 ## Example
-### READER
+### Read File
 ```cpp
 
 #include <nodepp/nodepp.h>
@@ -30,7 +30,7 @@ void onMain() {
 
 ```
 
-### WRITTER
+### Write File
 ```cpp
 
 #include <nodepp/nodepp.h>
