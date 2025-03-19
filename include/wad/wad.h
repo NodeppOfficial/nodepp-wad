@@ -25,8 +25,8 @@ public: wad_t() : obj( new NODE() ) {}
 
         obj->fd   = file_t( path, mode? "w" : "r" );
         obj->mode = mode; obj->state = 1;
-        obj->path = path; 
-    
+        obj->path = path;
+
     if( !mode ){
 
         do {
@@ -69,8 +69,8 @@ public: wad_t() : obj( new NODE() ) {}
 
     void free() const { if( !obj->state || !obj->mode ){ return; }
 
-        do { obj->fd.pos(0); 
-             ptr_t<char> header( sizeof(HEADER)+1, 0x00 ); 
+        do { obj->fd.pos(0);
+             ptr_t<char> header( sizeof(HEADER)+1, 0x00 );
              memcpy( header.get(), &obj->hdr, sizeof(HEADER) );
              obj->fd.write( header );
         } while(0); uint offset = sizeof(HEADER);
@@ -84,16 +84,16 @@ public: wad_t() : obj( new NODE() ) {}
         }
 
         auto n=obj->dir.first(); while( n!=nullptr ){
-             ptr_t<char> directory ( sizeof(DIRECTORY)+1, 0x00 ); 
+             ptr_t<char> directory ( sizeof(DIRECTORY)+1, 0x00 );
              memcpy( directory.get(), &n->data, sizeof(DIRECTORY) );
              obj->fd.write( directory );
         n=n->next; }
 
-        do { obj->fd.pos(0); 
-             obj->hdr.offset = offset; 
+        do { obj->fd.pos(0);
+             obj->hdr.offset = offset;
              obj->hdr.count  = obj->dir.size();
              memcpy( &obj->hdr.magic, "IWAD", 4 );
-             ptr_t<char> header ( sizeof( HEADER )+1, 0x00 ); 
+             ptr_t<char> header ( sizeof( HEADER )+1, 0x00 );
              memcpy( header.get(), &obj->hdr, sizeof(HEADER) );
              obj->fd.write( header );
         } while(0);
