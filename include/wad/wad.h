@@ -34,7 +34,7 @@ protected:
         string_t path; file_t fd; HEADER hdr;
     };  ptr_t<NODE> obj;
 
-    void parse_wad() { if( !obj->mode && obj->fs.is_available() ){
+    void parse_wad() { if( !obj->mode && obj->fd.is_available() ){
 
         do{ obj->fd.pos(0); auto raw = obj->fd.read( sizeof(HEADER) );
             memcpy( &obj->hdr, raw.get(), sizeof(HEADER) );
@@ -89,7 +89,7 @@ public:
     wad_t get_wad( string_t name ) const {
 
         auto nname = regex::join( "tmp_${0}_${1}_${2}.wad",
-            generator::key::generate(32), name,
+            encoder::key::generate(32), name,
             path::basename(obj->path,".wad")
         );
 
