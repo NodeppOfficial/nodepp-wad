@@ -3,6 +3,7 @@ a simple WAD reader written in Nodepp
 
 ## Example
 ### Read File
+
 ```cpp
 #include <nodepp/nodepp.h>
 #include <wad/wad.h>
@@ -11,7 +12,7 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto file = wad_t( "./FILE.wad", 0 ); // 0 meas readable wad file
+    auto file = wad_t( "./FILE.wad", "r" );
 
     for( auto x: file.get_file_list() ){ try {
 
@@ -36,13 +37,14 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto file = wad_t( "./FILE.wad", 1 ); // 1 meas writable wad file
+    auto file = wad_t( "./FILE.wad", "w" );
+
     file.append_file( "FILEA", "./main.cpp" );
     file.append_file( "FILEB", "./main.cpp" );
     file.append_file( "FILEC", "./main.cpp" );
 
     file.format_wad().then([]( int count ){
-        console::log( count, "<> files added" );
+        console::log( count, "<> files" );
     }).fail([=]( except_t err ){
         console::error( err.what() );
     });

@@ -5,7 +5,8 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto file = wad_t( "./FILE.wad", 1 ); // 1 meas writable
+    auto file = wad_t( "./FILE.wad", "w" );
+
     file.append_file( "FILEA", "./main.cpp" );
     file.append_file( "FILEB", "./main.cpp" );
     file.append_file( "FILEC", "./main.cpp" );

@@ -34,7 +34,7 @@ protected:
     using V = tuple_t<string_t,int>;
 
     struct NODE {
-        queue_t<DIRECTORY> dir; bool state=0, mode=0, used=0;
+        queue_t<DIRECTORY> dir; bool state=0, used=0;
         map_t<string_t,function_t<V>> file_list;
         string_t path; file_t fd; HEADER hdr;
     };  ptr_t<NODE> obj;
@@ -47,19 +47,19 @@ protected:
 
 public:
 
-    wad_t( string_t path, bool mode=0 ) : obj( new NODE() ) { parse_wad( path, mode ); }
    ~wad_t() noexcept { if( obj.count()>1 ){ return; } free(); }
+
+    wad_t( string_t path, string_t mode ) : obj( new NODE() ) {
+        obj->path = path; obj->fd = file_t( path, mode );
+        obj->state= 1; _init_(); parse_wad();
+    }
+
     wad_t() : obj( new NODE() ) { _init_(); }
 
     /*─······································································─*/
 
-    void parse_wad( string_t path, bool mode=0 ) const {
-
-        obj->fd   = file_t( path, mode? "w" : "r" );
-        obj->mode = mode; obj->state = 1;
-        obj->path = path; _init_();
-
-    if( !obj->mode && obj->fd.is_available() ){
+    void parse_wad() const {
+    if( obj->fd.is_available() && obj->fd.size()!=0 ){
 
         do{ obj->fd.pos(0); auto raw = obj->fd.read( sizeof(HEADER) );
             memcpy( &obj->hdr, raw.get(), sizeof(HEADER) );
@@ -88,7 +88,7 @@ public:
     return promise_t<int,except_t>([=]( function_t<void,int> res, function_t<void,except_t> rej ){
     try {
 
-        if( self->obj->file_list.empty() ){ throw ""; }
+        if( self->obj->file_list.empty() ){ throw ""; } self->obj->fd.del_borrow();
         if( self->obj->state == 0 )       { throw ""; }
 
         process::poll::add([=](){
@@ -103,6 +103,7 @@ public:
                 memcpy(dir.get(),(char*)&self->obj->hdr,sizeof(HEADER));
             self->obj->fd.write( dir ); } *len=0;
 
+            self->obj->fd.pos( self->obj->hdr.offset );
             coYield(1); *time=process::now();
 
             do{ auto n = self->obj->file_list.data()[0].second();
@@ -123,7 +124,6 @@ public:
             } while(0);
 
             if( !self->obj->file_list.empty() ){ coGoto(1); }
-
             coYield(2); *time=process::now();
 
             do{ auto n=self->obj->dir.first(); while( n!=nullptr ){
@@ -152,7 +152,7 @@ public:
     return promise_t<string_t,except_t>([=]( function_t<void,string_t> res, function_t<void,except_t> rej ){
     try {
 
-        if( mane->empty() || self->obj->mode || !self->obj->state ){ throw ""; }
+        if( mane->empty() || !self->obj->state ){ throw ""; }
      while( mane->size () <8 ){ mane->push('\0'); }
 
         do{ file_t file ( self->obj->path, "r" ); auto n=self->obj->dir.first();
@@ -172,7 +172,7 @@ public:
     return promise_t<file_t,except_t>([=]( function_t<void,file_t> res, function_t<void,except_t> rej ){
     try {
 
-        if( mane->empty() || self->obj->mode || !self->obj->state ){ throw ""; }
+        if( mane->empty() || !self->obj->state ){ throw ""; }
      while( mane->size () <8 ){ mane->push('\0'); }
 
         do{ file_t file ( self->obj->path, "r" ); auto n=self->obj->dir.first();
@@ -200,7 +200,7 @@ public:
         auto file  = fs::writable( dirnm );
 
         get_file( *mane ).then([=]( file_t raw ){
-            file.onDrain.once([=](){ res(wad_t(dirnm,0)); });
+            file.onDrain.once([=](){ res(wad_t(dirnm,"r")); });
             stream::pipe( raw, file );
         }).fail([=]( except_t err ){ rej(err); });
 
@@ -210,7 +210,7 @@ public:
 
     template< class T >
     void append_stream( string_t name, const T& str ) const {
-        if( name.empty() || !obj->mode || !obj->state )
+        if( name.empty() || !obj->state )
           { process::error( "something went wrong" ); return; }
         if( has_file( name ) )
           { process::error("file already exists");    return; }
@@ -228,7 +228,7 @@ public:
     }
 
     void append_data( string_t name, string_t data ) const {
-        if( name.empty() || !obj->mode || !obj->state )
+        if( name.empty() || !obj->state )
           { process::error( "something went wrong" ); return; }
         if( has_file( name ) )
           { process::error("file already exists");    return; }
@@ -284,7 +284,7 @@ public:
     /*─······································································─*/
 
     void free() const { try {
-         if( !obj->state || !obj->mode )
+         if( !obj->state || obj->file_list.empty() )
            { throw ""; } format_wad().await();
     } catch(...) {
          if(!regex::test( obj->path, os::tmp() ))
@@ -298,15 +298,15 @@ public:
 namespace nodepp { namespace wad {
 
     void write( string_t path, map_t<string_t,string_t> file_list ) {
-        wad_t wad ( path, 1 ); for( auto x: file_list.keys() )
+        wad_t wad ( path, "w" ); for( auto x: file_list.keys() )
             { wad.append_file( x, file_list[x] ); }
         wad.format_wad().await();
     }
 
-    wad_t read( string_t path ) { return wad_t( path, 0 ); }
+    wad_t read( string_t path ) { return wad_t( path, "r" ); }
 
     file_t read( string_t path, string_t name ) {
-        auto raw = wad_t( path, 0 ).get_file(name).await();
+        auto raw = wad_t( path, "r" ).get_file(name).await();
         if( !raw.has_value() ){ throw raw.error(); }
         return raw.value();
     }

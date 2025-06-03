@@ -5,7 +5,7 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto file = wad_t( "./FILE.wad", 0 ); // 0 meas readable
+    auto file = wad_t( "./FILE.wad", "r" );
 
     for( auto x: file.get_file_list() ){ try {
 
