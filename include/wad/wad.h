@@ -4,7 +4,7 @@
  * Licensed under the MIT (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
  * in the file LICENSE in the source distribution or at
- * https://github.com/NodeppOficial/nodepp/blob/main/LICENSE
+ * https://github.com/NodeppOfficial/nodepp/blob/main/LICENSE
  */
 
 /*────────────────────────────────────────────────────────────────────────────*/
@@ -68,7 +68,7 @@ public:
             obj->fd.pos( obj->hdr.offset );
           } while(0);
 
-        for( auto x=0; x<obj->hdr.count; x++ ){ try {
+        for( auto x=obj->hdr.count; x-->0; ){ try {
              auto dir = DIRECTORY();
              auto raw = obj->fd.read( sizeof(DIRECTORY) );
              memcpy( &dir, raw.get(), sizeof(DIRECTORY) ); obj->dir.push(dir);
