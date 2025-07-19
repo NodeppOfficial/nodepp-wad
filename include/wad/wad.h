@@ -64,7 +64,7 @@ public:
         do{ obj->fd.pos(0); auto raw = obj->fd.read( sizeof(HEADER) );
             memcpy( &obj->hdr, raw.get(), sizeof(HEADER) );
         if( memcmp( obj->hdr.magic+1, "WAD", 3 )!=0 )
-          { process::error("invalid WAD format"); return; }
+          { throw except_t("invalid WAD format"); return; }
             obj->fd.pos( obj->hdr.offset );
           } while(0);
 
@@ -91,10 +91,10 @@ public:
         if( self->obj->file_list.empty() ){ throw ""; } self->obj->fd.del_borrow();
         if( self->obj->state == 0 )       { throw ""; }
 
-        process::poll::add([=](){
+        process::add( coroutine::add( COROUTINE(){
             if( self->obj->state == 0 )                         { self->release(); return -1; }
             if(*time>0&&(process::now()-*time)>TIME_SECONDS(1) ){ self->release(); return -1; }
-        coStart
+        coBegin
 
             coWait( self->is_used() ); self->use(); *time=process::now();
 
@@ -137,8 +137,8 @@ public:
 
             res( self->obj->hdr.count ); self->release();
 
-        coStop
-        });
+        coFinish
+        }));
 
     } catch(...) { rej("something went wrong"); self->release(); } }); }
 
@@ -211,9 +211,9 @@ public:
     template< class T >
     void append_stream( string_t name, const T& str ) const {
         if( name.empty() || !obj->state )
-          { process::error( "something went wrong" ); return; }
+          { throw except_t( "something went wrong" ); return; }
         if( has_file( name ) )
-          { process::error("file already exists");    return; }
+          { throw except_t("file already exists");    return; }
      while( name.size()<8 ){ name.push('\0'); }
 
         ptr_t<_file_::read> _read_ = new _file_::read();
@@ -229,9 +229,9 @@ public:
 
     void append_data( string_t name, string_t data ) const {
         if( name.empty() || !obj->state )
-          { process::error( "something went wrong" ); return; }
+          { throw except_t( "something went wrong" ); return; }
         if( has_file( name ) )
-          { process::error("file already exists");    return; }
+          { throw except_t("file already exists");    return; }
      while( name.size()<8 ){ name.push('\0'); }
 
         ptr_t<bool> x = new bool(0);
