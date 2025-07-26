@@ -5,18 +5,17 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto raw = wad::read( "./FILE.wad" );
+    auto file = wad_t( "./FILE.wad", "r" );
 
-    for( auto x: raw.get_file_list() ){
-         console::log( "<>", x );
-    }
+    for( auto x: file.get_file_list() ){ try {
 
-    auto cin = raw.get_file( "FILENAME" );
+        auto cin = file.get_file(x).await();
+        cin.value().onData([=]( string_t data ){
+            console::log( x, "<>", data.size(), data );
+        }); stream::await( cin.value() );
 
-    cin.onData([=]( string_t data ){
-        console::log( "<>", data.size() );
-    });
-
-    stream::pipe( cin );
+    } catch( except_t err ) {
+        console::error( err.what() );
+    }}
 
 }

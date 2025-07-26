@@ -2,9 +2,9 @@
 a simple WAD reader written in Nodepp
 
 ## Example
-### READER
-```cpp
+### Read File
 
+```cpp
 #include <nodepp/nodepp.h>
 #include <wad/wad.h>
 
@@ -12,27 +12,24 @@ using namespace nodepp;
 
 void onMain() {
 
-    auto raw = wad::read( "./FILE.wad" );
+    auto file = wad_t( "./FILE.wad", "r" );
 
-    for( auto x: raw.get_file_list() ){
-         console::log( "<>", x );
-    }
+    for( auto x: file.get_file_list() ){ try {
 
-    auto cin = raw.get_file( "FILENAME" );
+        auto cin = file.get_file(x).await();
+        cin.value().onData([=]( string_t data ){
+            console::log( x, "<>", data.size(), data );
+        }); stream::await( cin.value() );
 
-    cin.onData([=]( string_t data ){
-        console::log( "<>", data.size() );
-    });
-
-    stream::pipe( cin );
+    } catch( except_t err ) {
+        console::error( err.what() );
+    }}
 
 }
-
 ```
 
-### WRITTER
+### Write File
 ```cpp
-
 #include <nodepp/nodepp.h>
 #include <wad/wad.h>
 
@@ -40,12 +37,17 @@ using namespace nodepp;
 
 void onMain() {
 
-    wad::write( "./FILE.wad", map_t<string_t,string_t>({
-        { "FILEA", "./main.cpp" },
-        { "FILEB", "./main.cpp" },
-        { "FILEC", "./main.cpp" },
-    }) );
+    auto file = wad_t( "./FILE.wad", "w" );
+
+    file.append_file( "FILEA", "./main.cpp" );
+    file.append_file( "FILEB", "./main.cpp" );
+    file.append_file( "FILEC", "./main.cpp" );
+
+    file.format_wad().then([]( int count ){
+        console::log( count, "<> files" );
+    }).fail([=]( except_t err ){
+        console::error( err.what() );
+    });
 
 }
-
 ```

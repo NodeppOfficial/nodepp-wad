@@ -1,1 +1,1 @@
-g++ -o main main.cpp -I./include ; ./main
+time g++ -o main main.cpp -I./include ; ./main
