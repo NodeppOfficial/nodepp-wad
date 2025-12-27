@@ -82,10 +82,10 @@ public:
 
         auto write = generator::file::write();
         auto self  = type::bind( this );
-        auto len   = type::bind( new ulong(0) );
-        auto time  = type::bind( new ulong(0) );
+        auto len   = type::bind( 0UL  );
+        auto time  = type::bind( 0UL  );
 
-    return promise_t<int,except_t>([=]( function_t<void,int> res, function_t<void,except_t> rej ){
+    return promise_t<int,except_t>([=]( res_t<int> res, rej_t<except_t> rej ){
     try {
 
         if( self->obj->file_list.empty() ){ throw ""; } self->obj->fd.del_borrow();
@@ -149,7 +149,7 @@ public:
         auto self = type::bind( this );
         auto mane = type::bind( name );
 
-    return promise_t<string_t,except_t>([=]( function_t<void,string_t> res, function_t<void,except_t> rej ){
+    return promise_t<string_t,except_t>([=]( res_t<string_t> res, rej_t<except_t> rej ){
     try {
 
         if( mane->empty() || !self->obj->state ){ throw ""; }
@@ -169,7 +169,7 @@ public:
         auto self = type::bind( this );
         auto mane = type::bind( name );
 
-    return promise_t<file_t,except_t>([=]( function_t<void,file_t> res, function_t<void,except_t> rej ){
+    return promise_t<file_t,except_t>([=]( res_t<file_t> res, rej_t<except_t> rej ){
     try {
 
         if( mane->empty() || !self->obj->state ){ throw ""; }
@@ -188,7 +188,7 @@ public:
         auto self = type::bind( this );
         auto mane = type::bind( name );
 
-    return promise_t<wad_t,except_t>([=]( function_t<void,wad_t> res, function_t<void,except_t> rej ){
+    return promise_t<wad_t,except_t>([=]( res_t<wad_t> res, rej_t<except_t> rej ){
     try {
 
         auto nname = regex::join( "tmp_${0}_${1}_${2}.wad",
